@@ -1,0 +1,550 @@
+---
+title: "Homework - 2"
+author: "Group 4"
+date: "5/19/2020"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Problem 1
+Perform principal component analysis on NHL.xlsx, which contains statistics of 30 teams in the National Hockey League. The description of the variables is provided in the ‘Description’ sheet of the file. Focus only on the variables 12 through 25, and create a new data frame.
+
+• Input the new data frame to fa.parallel() function to determine the number of components to extract
+
+• Input the new data frame to principal() function to extract the components. If raw data is input, the correlation matrix is automatically calculated by principal() function.
+
+• Rotate the components
+
+• Compute component scores
+
+• Graph an orthogonal solution using factor.plot()
+
+• Interpret the results
+
+## First, import all the required libraries
+
+``` {r message = FALSE}
+library(dplyr)
+library(readxl)
+library(psych)
+```
+
+
+``` {r message = FALSE}
+# Import the NHL excel file as a dataframe
+NHL <- data.frame(read_xlsx("NHL.xlsx", sheet = "Data"))
+
+# Select the columns 13-26, the 1st column is the index column from excel
+df <- NHL[, 13:26]
+
+# Use Parallel Analysis Scree Plots to figure out the number of factors to extract
+fa.parallel(df, fa = "pc", n.iter = 100, show.legend = FALSE)
+```
+
+
+From the above plot it will be appropriate to use 1 factor
+
+``` {r}
+# Perform PCA with varimax orthogonal rotation
+pc <- principal(df, nfactors = 1, rotate = "none", scores = TRUE)
+
+pc
+```
+
+Now rotate the components
+
+``` {r}
+# PCA with varimax rotation
+pc <- principal(df, nfactors = 1, rotate = "varimax", scores = TRUE)
+
+pc
+```
+
+Let's see the component scores 
+
+``` {r}
+head(pc$scores)
+```
+
+``` {r}
+
+# Plot the components and analyze them
+factor.plot(pc, labels = colnames(df))
+
+
+rm(list = ls())
+```
+
+Observations made from the plots -
+- The Principal Component loads all the components except PPP and face.
+
+- There isn't any clear indication as to what the component signifies. Further analysis may be required.
+
+---
+
+# Problem 2
+Perform principal component analysis on Glass Identification Data.xlsx
+
+• Input the raw data matrix to fa.parallel() function to determine the number of components to extract
+
+• Input the raw data matrix to principal() function to extract the components. If raw data is input, the correlation matrix is automatically calculated by principal() function.
+
+• Rotate the components
+
+• Compute component scores
+
+• Graph an orthogonal solution using factor.plot()
+
+• Interpret the results
+
+``` {r}
+glass_identification_data <- data.frame(read_xlsx("Glass Identification Data.xlsx",
+  sheet = "Glass Data"
+))
+
+fa.parallel(glass_identification_data[, 2:10], fa = "pc", n.iter = 100, show.legend = FALSE)
+```
+
+The Skree Plot and the fa.parallel() function suggests nfactors = 4.
+
+``` {r}
+# Perform PCA without rotation
+pc <- principal(glass_identification_data[, 2:10], nfactors = 4, rotate = "none", scores = TRUE)
+
+pc
+```
+
+
+Rotate the components
+
+``` {r}
+# Perform PCA with rotation
+pc <- principal(glass_identification_data[, 2:10], nfactors = 4, rotate = "varimax", scores = TRUE)
+
+pc
+```
+
+``` {r}
+head(pc$scores)
+```
+
+
+``` {r}
+# Plot the components and analyze them
+factor.plot(pc,
+  choose = c(1),
+  labels = colnames(glass_identification_data[, 2:10]),
+  title = "PCA Component 1"
+)
+
+factor.plot(pc,
+  choose = c(2),
+  labels = colnames(glass_identification_data[, 2:10]),
+  title = "PCA Component 2"
+)
+
+factor.plot(pc,
+  choose = c(3),
+  labels = colnames(glass_identification_data[, 2:10]),
+  title = "PCA Component 3"
+)
+
+factor.plot(pc,
+  choose = c(4),
+  labels = colnames(glass_identification_data[, 2:10]),
+  title = "PCA Component 4"
+)
+
+
+
+factor.plot(pc, choose = c(1, 2), labels = colnames(glass_identification_data[, 2:10]))
+factor.plot(pc, choose = c(1, 3), labels = colnames(glass_identification_data[, 2:10]))
+factor.plot(pc, choose = c(1, 4), labels = colnames(glass_identification_data[, 2:10]))
+factor.plot(pc, choose = c(2, 3), labels = colnames(glass_identification_data[, 2:10]))
+factor.plot(pc, choose = c(2, 4), labels = colnames(glass_identification_data[, 2:10]))
+factor.plot(pc, choose = c(3, 4), labels = colnames(glass_identification_data[, 2:10]))
+
+factor.plot(pc, labels = colnames(glass_identification_data[, 2:10]))
+rm(list = ls())
+```
+
+Observations made - 
+- PC1: loads RI, CA, Mg, Al and K.
+
+- PC2: loads Mg, Al and Ba.
+
+- PC3: loads Na, K, Ba and Fe.
+
+- PC4: loads RI and Si.
+
+Hence -
+1. PC1 signifies Calcium, Potassium, Magnesium and Aluminum heavy glass. It also signifies glass with high refractive index.
+
+2. PC2 signifies glass with high Magnesium, Aluminum and Barium concentration.
+
+3. PC3 signifies glass with high Sodium, Potassium, Barium and Iron concentration.
+
+4. PC4 signifies glass with high Refractive Index and Silicon concentration.
+
+---
+
+# Problem 3
+
+Perform factor analysis on Herman74.cor, which is a data structure available in the base installation (A correlation matrix of 24 psychological tests given to 145 seventh and eight-grade children in a Chicago suburb by Holzinger and Swineford).
+
+• Input the correlation matrix to fa.parallel() function to determine the number of components to extract
+
+• Input the correlation matrix to fa() function to extract the components. If raw data is input, the correlation matrix is automatically calculated by fa() function.
+
+• Rotate the factors
+
+• Compute factor scores
+
+• Graph an orthogonal solution using factor.plot()
+
+• Graph an oblique solutions using fa.diagram()
+
+• Interpret the results
+
+``` {r}
+"Harman75.cor" <-
+  structure(list(cov = structure(c(
+    1, 0.318, 0.403, 0.468, 0.321,
+    0.335, 0.304, 0.332, 0.326, 0.116, 0.308, 0.314, 0.489, 0.125,
+    0.238, 0.414, 0.176, 0.368, 0.27, 0.365, 0.369, 0.413, 0.474,
+    0.282, 0.318, 1, 0.317, 0.23, 0.285, 0.234, 0.157, 0.157, 0.195,
+    0.057, 0.15, 0.145, 0.239, 0.103, 0.131, 0.272, 0.005, 0.255,
+    0.112, 0.292, 0.306, 0.232, 0.348, 0.211, 0.403, 0.317, 1, 0.305,
+    0.247, 0.268, 0.223, 0.382, 0.184, -0.075, 0.091, 0.14, 0.321,
+    0.177, 0.065, 0.263, 0.177, 0.211, 0.312, 0.297, 0.165, 0.25,
+    0.383, 0.203, 0.468, 0.23, 0.305, 1, 0.227, 0.327, 0.335, 0.391,
+    0.325, 0.099, 0.11, 0.16, 0.327, 0.066, 0.127, 0.322, 0.187,
+    0.251, 0.137, 0.339, 0.349, 0.38, 0.335, 0.248, 0.321, 0.285,
+    0.247, 0.227, 1, 0.622, 0.656, 0.578, 0.723, 0.311, 0.344, 0.215,
+    0.344, 0.28, 0.229, 0.187, 0.208, 0.263, 0.19, 0.398, 0.318,
+    0.441, 0.435, 0.42, 0.335, 0.234, 0.268, 0.327, 0.622, 1, 0.722,
+    0.527, 0.714, 0.203, 0.353, 0.095, 0.309, 0.292, 0.251, 0.291,
+    0.273, 0.167, 0.251, 0.435, 0.263, 0.386, 0.431, 0.433, 0.304,
+    0.157, 0.223, 0.335, 0.656, 0.722, 1, 0.619, 0.685, 0.246, 0.232,
+    0.181, 0.345, 0.236, 0.172, 0.18, 0.228, 0.159, 0.226, 0.451,
+    0.314, 0.396, 0.405, 0.437, 0.332, 0.157, 0.382, 0.391, 0.578,
+    0.527, 0.619, 1, 0.532, 0.285, 0.3, 0.271, 0.395, 0.252, 0.175,
+    0.296, 0.255, 0.25, 0.274, 0.427, 0.362, 0.357, 0.501, 0.388,
+    0.326, 0.195, 0.184, 0.325, 0.723, 0.714, 0.685, 0.532, 1, 0.17,
+    0.28, 0.113, 0.28, 0.26, 0.248, 0.242, 0.274, 0.208, 0.274, 0.446,
+    0.266, 0.483, 0.504, 0.424, 0.116, 0.057, -0.075, 0.099, 0.311,
+    0.203, 0.246, 0.285, 0.17, 1, 0.484, 0.585, 0.408, 0.172, 0.154,
+    0.124, 0.289, 0.317, 0.19, 0.173, 0.405, 0.16, 0.262, 0.531,
+    0.308, 0.15, 0.091, 0.11, 0.344, 0.353, 0.232, 0.3, 0.28, 0.484,
+    1, 0.428, 0.535, 0.35, 0.24, 0.314, 0.362, 0.35, 0.29, 0.202,
+    0.399, 0.304, 0.251, 0.412, 0.314, 0.145, 0.14, 0.16, 0.215,
+    0.095, 0.181, 0.271, 0.113, 0.585, 0.428, 1, 0.512, 0.131, 0.173,
+    0.119, 0.278, 0.349, 0.11, 0.246, 0.355, 0.193, 0.35, 0.414,
+    0.489, 0.239, 0.321, 0.327, 0.344, 0.309, 0.345, 0.395, 0.28,
+    0.408, 0.535, 0.512, 1, 0.195, 0.139, 0.281, 0.194, 0.323, 0.263,
+    0.241, 0.425, 0.279, 0.382, 0.358, 0.125, 0.103, 0.177, 0.066,
+    0.28, 0.292, 0.236, 0.252, 0.26, 0.172, 0.35, 0.131, 0.195, 1,
+    0.37, 0.412, 0.341, 0.201, 0.206, 0.302, 0.183, 0.243, 0.242,
+    0.304, 0.238, 0.131, 0.065, 0.127, 0.229, 0.251, 0.172, 0.175,
+    0.248, 0.154, 0.24, 0.173, 0.139, 0.37, 1, 0.325, 0.345, 0.334,
+    0.192, 0.272, 0.232, 0.246, 0.256, 0.165, 0.414, 0.272, 0.263,
+    0.322, 0.187, 0.291, 0.18, 0.296, 0.242, 0.124, 0.314, 0.119,
+    0.281, 0.412, 0.325, 1, 0.324, 0.344, 0.258, 0.388, 0.348, 0.283,
+    0.36, 0.262, 0.176, 0.005, 0.177, 0.187, 0.208, 0.273, 0.228,
+    0.255, 0.274, 0.289, 0.362, 0.278, 0.194, 0.341, 0.345, 0.324,
+    1, 0.448, 0.324, 0.262, 0.173, 0.273, 0.287, 0.326, 0.368, 0.255,
+    0.211, 0.251, 0.263, 0.167, 0.159, 0.25, 0.208, 0.317, 0.35,
+    0.349, 0.323, 0.201, 0.334, 0.344, 0.448, 1, 0.358, 0.301, 0.357,
+    0.317, 0.272, 0.405, 0.27, 0.112, 0.312, 0.137, 0.19, 0.251,
+    0.226, 0.274, 0.274, 0.19, 0.29, 0.11, 0.263, 0.206, 0.192, 0.258,
+    0.324, 0.358, 1, 0.167, 0.331, 0.342, 0.303, 0.374, 0.365, 0.292,
+    0.297, 0.339, 0.398, 0.435, 0.451, 0.427, 0.446, 0.173, 0.202,
+    0.246, 0.241, 0.302, 0.272, 0.388, 0.262, 0.301, 0.167, 1, 0.413,
+    0.463, 0.509, 0.366, 0.369, 0.306, 0.165, 0.349, 0.318, 0.263,
+    0.314, 0.362, 0.266, 0.405, 0.399, 0.355, 0.425, 0.183, 0.232,
+    0.348, 0.173, 0.357, 0.331, 0.413, 1, 0.374, 0.451, 0.448, 0.413,
+    0.232, 0.25, 0.38, 0.441, 0.386, 0.396, 0.357, 0.483, 0.16, 0.304,
+    0.193, 0.279, 0.243, 0.246, 0.283, 0.273, 0.317, 0.342, 0.463,
+    0.374, 1, 0.503, 0.375, 0.474, 0.348, 0.383, 0.335, 0.435, 0.431,
+    0.405, 0.501, 0.504, 0.262, 0.251, 0.35, 0.382, 0.242, 0.256,
+    0.36, 0.287, 0.272, 0.303, 0.509, 0.451, 0.503, 1, 0.434, 0.282,
+    0.211, 0.203, 0.248, 0.42, 0.433, 0.437, 0.388, 0.424, 0.531,
+    0.412, 0.414, 0.358, 0.304, 0.165, 0.262, 0.326, 0.405, 0.374,
+    0.366, 0.448, 0.375, 0.434, 1
+  ), .Dim = c(24, 24), .Dimnames = list(
+    c(
+      "VisualPerception", "Cubes", "PaperFormBoard", "Flags",
+      "GeneralInformation", "PargraphComprehension", "SentenceCompletion",
+      "WordClassification", "WordMeaning", "Addition", "Code",
+      "CountingDots", "StraightCurvedCapitals", "WordRecognition",
+      "NumberRecognition", "FigureRecognition", "ObjectNumber",
+      "NumberFigure", "FigureWord", "Deduction", "NumericalPuzzles",
+      "ProblemReasoning", "SeriesCompletion", "ArithmeticProblems"
+    ), c(
+      "VisualPerception", "Cubes", "PaperFormBoard", "Flags",
+      "GeneralInformation", "PargraphComprehension", "SentenceCompletion",
+      "WordClassification", "WordMeaning", "Addition", "Code",
+      "CountingDots", "StraightCurvedCapitals", "WordRecognition",
+      "NumberRecognition", "FigureRecognition", "ObjectNumber",
+      "NumberFigure", "FigureWord", "Deduction", "NumericalPuzzles",
+      "ProblemReasoning", "SeriesCompletion", "ArithmeticProblems"
+    )
+  )), center = c(
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  ), n.obs = 145), .Names = c(
+    "cov",
+    "center", "n.obs"
+  ))
+
+
+fa.parallel(Harman74.cor$cov,
+  n.obs = Harman74.cor$n.obs,
+  n.iter = 100
+)
+```
+
+The Screeplot suggests 4 components.
+
+``` {r}
+# Perform Factor Analysis
+correlations <- cov2cor(Harman74.cor$cov)
+fa <- fa(correlations, nfactors = 4, rotate = "none", scores = TRUE)
+
+fa
+```
+
+Rotate the factors
+
+``` {r}
+fa_orthogonal <- fa(correlations, nfactors = 4, rotate = "varimax", scores = TRUE)
+
+fa_orthogonal
+```
+
+Let's see the factor scores
+``` {r}
+fa_orthogonal$weights
+```
+
+
+Plotting an orthogonal solution
+
+``` {r}
+factor.plot(fa_orthogonal, choose = c(1), labels = rownames(fa$loadings))
+factor.plot(fa_orthogonal, choose = c(2), labels = rownames(fa$loadings))
+factor.plot(fa_orthogonal, choose = c(3), labels = rownames(fa$loadings))
+factor.plot(fa_orthogonal, choose = c(4), labels = rownames(fa$loadings))
+
+factor.plot(fa_orthogonal)
+```
+
+Now let's plot an oblique solution
+``` {r}
+fa_oblique <- fa(Harman74.cor$cov, nfactors = 4, rotate = "promax", scores = TRUE)
+
+fa.diagram(fa_oblique)
+
+rm(list = ls())
+```
+
+We can make the following observations - 
+
+- Factor 1 seems to be related to language related attributes like Sentence Completion, WordMeaning, Word Classification etc.
+
+- Factor 2 seems to be related to more general problem solving attributes like Deduction, Problem Reasoning, Cubes, Flage etc.
+
+- Factor 3 seems to be related to mathematical attributes like Code, Counting Data, Addition, Number Recognition etc.
+
+- Factor 4 seems to be related to Word and Number recognition.
+
+---
+
+# Problem 4 
+
+Perform factor analysis on breast-cancer-wisconsin.xlsx, is a multivariate dataset that is used to predict whether a cancer is malignant or benign from biopsy details of 699 patients with 11 attributes. Create a new data frame by removing the variable “BN”.
+
+• Calculate the correlation matrix from the new data frame. Visualize the correlation matrix using pairs.panels function of the “psych” package. How would you interpret the result in terms of correlation among the variables?
+
+• Input the correlation matrix to fa.parallel() function to determine the number of components to extract
+
+• Input the correlation matrix to fa() function to extract the components. If raw data is input, the correlation matrix is automatically calculated by fa() function.
+
+• Rotate the factors
+
+• Compute factor scores
+
+• Graph an orthogonal solution using factor.plot()
+
+• Graph an oblique solutions using fa.diagram()
+
+• Interpret the results
+
+``` {r}
+breast_cancer <- read_xlsx("breast-cancer-wisconsin.xlsx",
+  sheet = "breast-cancer-wisconsin.csv"
+)
+
+breast_cancer <- select(breast_cancer, c(1, 2, 3, 4, 5, 6, 8, 9, 10, 11))
+
+bc.cor <- cor(breast_cancer[, 2:9])
+```
+
+Visualize the correlation
+
+``` {r}
+pairs.panels(bc.cor)
+```
+
+We can interpret the following from the plot -
+
+- all the variables are highly correlated to each other except the following pairs:
+  1. CT and NN
+  2. CT and MA
+  3. CT and SECS
+  4. CT and BC
+
+Let's now analysze the scree plot
+
+``` {r}
+fa.parallel(bc.cor, n.obs = 699)
+```
+
+According to the scree plot the appropriate number of factors are 1
+
+``` {r}
+fa <- fa(bc.cor, nfactors = 1, rotate = "none", n.obs = 699, fm = "pa")
+
+fa
+```
+
+Rotate the factors now 
+
+``` {r}
+fa_orthogonal <- fa(bc.cor, nfactors = 1, rotate = "varimax", fm = "pa", scores = TRUE)
+
+fa_orthogonal
+```
+
+The factor scores are :
+```{r}
+fa_orthogonal$weights
+```
+
+Let's plot an orthogonal solution 
+
+``` {r}
+factor.plot(fa_orthogonal, labels = colnames(bc.cor))
+```
+
+Let's plot an oblique solution
+
+``` {r}
+fa_oblique <- fa(bc.cor, nfactors = 1, rotate = "promax", fm = "pa", scores = TRUE)
+
+fa_oblique
+```
+
+Let's plot the oblique solution
+
+``` {r}
+factor.plot(fa_oblique, labels = colnames(bc.cor))
+
+fa.diagram(fa_oblique)
+
+rm(list = ls())
+```
+
+We can make the following observations - 
+
+The high loading scores and the test of hypothesis of the
+factor analysis indicate that one factor is sufficient to explain all the variables owing to their 
+high loading scores, indicating high values for communality.
+both the orthoganal and oblique plot reinforce the same.
+
+---
+
+# Problem 5
+Perform multidimensional scaling on Vertebral Column Data.xlsx
+
+• Input the raw data matrix to fa.parallel() function to determine the number of components to extract
+
+• Input the raw data matrix to cmdscale() function to perform multidimensional scaling. cmdscale() function which is available in the base installation performs a classical multidimensional scaling.
+
+• Graph an orthogonal solution using factor.plot()
+
+• Interpret the results
+
+``` {r}
+vertebral_column_data <- data.frame(read_xlsx("Vertebral Column Data.xlsx",
+  sheet = "column_3C"
+))
+
+fa.parallel(vertebral_column_data[, 1:6], n.iter = 100)
+```
+
+Scree Plots suggests number of factors 3
+
+``` {r}
+
+# Calculate the distance matrix
+d <- dist(vertebral_column_data[, 1:6])
+
+# Perform Multidimensional Scaling
+fit <- cmdscale(d, k = 3, eig = TRUE)
+```
+
+The MDS has reduced the data to 3 dimensions
+
+``` {r}
+head(fit$points)
+```
+
+This is the same as calculating 3 factors.
+
+Let's graph the orthogonal solution now
+
+``` {r}
+
+pc <- principal(vertebral_column_data[, 1:6], nfactors = 3, rotate = "varimax")
+
+factor.plot(pc, choose = c(1), labels = c(
+  "pelvic incidence", "pelvic tilt",
+  "lumbar lordosis angle", "sacral slope",
+  "pelvic radius", " grade of spondylolisthesis."
+))
+
+factor.plot(pc, choose = c(2), labels = c(
+  "pelvic incidence", "pelvic tilt",
+  "lumbar lordosis angle", "sacral slope",
+  "pelvic radius", " grade of spondylolisthesis."
+))
+factor.plot(pc, choose = c(3), labels = c(
+  "pelvic incidence", "pelvic tilt",
+  "lumbar lordosis angle", "sacral slope",
+  "pelvic radius", " grade of spondylolisthesis."
+))
+
+factor.plot(pc, labels = c(
+  "pelvic incidence", "pelvic tilt",
+  "lumbar lordosis angle", "sacral slope",
+  "pelvic radius", " grade of spondylolisthesis."
+))
+
+rm(list = ls())
+```
+
+We can make the following observations -
+
+- Component 1 loads pelvic incidence, lumbar lordosis angle, sacral slope and grade of spondylolisthesis. 
+
+- Component 2 loads pelvic incidence and pelvic tilt.
+
+- Component 3 loads sacral slope and pelvic radius.
+
+---
